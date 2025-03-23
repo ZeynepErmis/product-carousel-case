@@ -108,11 +108,10 @@
       const section = document.querySelector(".Section1");
       if (section) {
         section.insertAdjacentHTML("afterend", html);
+        setEvents();
       } else {
         console.log("No suitable container found for Carousel.");
       }
-
-      setEvents();
     } catch (error) {
       console.error("An error occurred while retrieving product data:", error);
     }
@@ -481,7 +480,9 @@
     const nextBtn = document.querySelector(".next-btn");
 
     const getScrollAmount = () => {
-      const productCard = carousel.querySelector(".product-card");
+      const productCard = carousel
+        ? carousel.querySelector(".product-card")
+        : null;
       if (!productCard) return 250;
       const cardRect = productCard.getBoundingClientRect();
       const style = getComputedStyle(productCard);
@@ -491,6 +492,7 @@
     };
 
     const adjustCarouselPosition = () => {
+      if (!carousel) return;
       const scrollStep = getScrollAmount();
       const index = Math.round(carousel.scrollLeft / scrollStep);
       carousel.scrollTo({ left: index * scrollStep, behavior: "smooth" });
@@ -498,31 +500,36 @@
 
     window.addEventListener("resize", adjustCarouselPosition);
 
-    prevBtn.addEventListener("click", () => {
-      const scrollAmount = getScrollAmount();
-      let newScrollLeft = carousel.scrollLeft - scrollAmount;
-      if (newScrollLeft < 0) newScrollLeft = 0;
-      carousel.scrollTo({ left: newScrollLeft, behavior: "smooth" });
-    });
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => {
+        if (!carousel) return;
+        const scrollAmount = getScrollAmount();
+        let newScrollLeft = carousel.scrollLeft - scrollAmount;
+        if (newScrollLeft < 0) newScrollLeft = 0;
+        carousel.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+      });
+    }
 
-    nextBtn.addEventListener("click", () => {
-      const lastCard = carousel.querySelector(".product-card:last-child");
-      if (lastCard) {
-        const lastCardRect = lastCard.getBoundingClientRect();
-        const carouselRect = carousel.getBoundingClientRect();
-        if (lastCardRect.right <= carouselRect.right) {
-          return;
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        if (!carousel) return;
+        const lastCard = carousel.querySelector(".product-card:last-child");
+        if (lastCard) {
+          const lastCardRect = lastCard.getBoundingClientRect();
+          const carouselRect = carousel.getBoundingClientRect();
+          if (lastCardRect.right <= carouselRect.right) {
+            return;
+          }
         }
-      }
-
-      const scrollAmount = getScrollAmount();
-      let newScrollLeft = carousel.scrollLeft + scrollAmount;
-      const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
-      if (newScrollLeft > maxScrollLeft) {
-        newScrollLeft = maxScrollLeft;
-      }
-      carousel.scrollTo({ left: newScrollLeft, behavior: "smooth" });
-    });
+        const scrollAmount = getScrollAmount();
+        let newScrollLeft = carousel.scrollLeft + scrollAmount;
+        const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+        if (newScrollLeft > maxScrollLeft) {
+          newScrollLeft = maxScrollLeft;
+        }
+        carousel.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+      });
+    }
 
     favoriteButtons.forEach((button) => {
       const productId = button.getAttribute("data-id");
@@ -562,5 +569,4 @@
   };
 
   init();
-  
 })();
